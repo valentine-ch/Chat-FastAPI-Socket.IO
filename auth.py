@@ -36,12 +36,23 @@ def validata_token_in_header(token: str = Depends(oauth2_scheme)):
     return user_id
 
 
+def validate_name(name: str):
+    if not (1 <= len(name) <= 16):
+        raise HTTPException(status_code=400, detail="Name must be 1 to 16 characters long")
+
+    if name.isspace():
+        raise HTTPException(status_code=400, detail="Name cannot consist of whitespace only")
+
+    if re.match(r"[\x00-\x1F\x7F]", name):
+        raise HTTPException(status_code=400, detail="Name cannot contain control or non-displayable characters")
+
+
 def validate_login(login: str):
-    if not (2 <= len(login) <= 16):
-        raise HTTPException(status_code=400, detail="Username must be 2 to 16 characters long")
+    if not (2 <= len(login) <= 24):
+        raise HTTPException(status_code=400, detail="Login must be 2 to 24 characters long")
 
     if not re.match(r"^[a-zA-Z0-9]+$", login):
-        raise HTTPException(status_code=400, detail="Username can have only English letters and numbers")
+        raise HTTPException(status_code=400, detail="Login can have only English letters and numbers")
 
 
 def validate_password(password: str):

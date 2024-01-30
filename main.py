@@ -10,7 +10,8 @@ import schemas
 from database import init_db, get_db, db_session
 import crud
 from auth import (
-    generate_token, validate_token, validata_token_in_header, ph, validate_login, validate_password, verify_password
+    generate_token, validate_token, validata_token_in_header, ph, validate_login, validate_password, verify_password,
+    validate_name
 )
 
 
@@ -39,6 +40,7 @@ async def ping():
 async def register(body: schemas.Registration, db: Session = Depends(get_db)):
     validate_login(body.login)
     validate_password(body.password)
+    validate_name(body.name)
     hashed_password = ph.hash(body.password)
     try:
         if crud.get_user_by_login(db, body.login):
@@ -73,6 +75,7 @@ async def login(credentials: HTTPBasicCredentials = Depends(security), db: Sessi
 
 @app.post("/guest_login")
 async def create_user(body: schemas.GuestLogin, db: Session = Depends(get_db)):
+    validate_name(body.name)
     try:
         user_id_str = str(crud.create_guest_user(db, body.name))
         token = generate_token(user_id_str)
@@ -84,6 +87,7 @@ async def create_user(body: schemas.GuestLogin, db: Session = Depends(get_db)):
 @app.post("/change_name")
 async def change_name(body: schemas.UpdateName, user_id: str = Depends(validata_token_in_header),
                       db: Session = Depends(get_db)):
+    validate_name(body.new_name)
     try:
         user = crud.update_username(db, user_id, body.new_name)
         return {"status": "success", "new_name": user.name}
